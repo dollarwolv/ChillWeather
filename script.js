@@ -18,11 +18,19 @@ class weatherProcessor {
   }
 
   async getWeather() {
-    const response = await fetch(
-      `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${this.location}?key=W4SXUHWGCYRGBTEUJ4V3GLEA7`,
-      { mode: "cors" }
-    );
-    this.weatherData = await response.json();
+    try {
+      const response = await fetch(
+        `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${this.location}?key=W4SXUHWGCYRGBTEUJ4V3GLEA7`,
+        { mode: "cors" }
+      );
+      this.weatherData = await response.json();
+      if (!response.ok) {
+        throw new Error("bad request");
+      }
+    } catch {
+      this.dom.displayForm();
+      this.dom.getLocation();
+    }
   }
 
   async processWeather() {
@@ -38,8 +46,12 @@ class weatherProcessor {
       let today = {};
       today[`Max Temperature`] = day.tempmax;
       today[`Min Temperature`] = day.tempmin;
+      today["Description"] = day.description;
+      today["Icon"] = day.icon;
       daysInfo[day.datetime] = today;
     }
+
+    console.log(daysInfo);
 
     this.dom.displayInterface(this.addressString, this.description, daysInfo);
   }
@@ -95,7 +107,42 @@ class dom {
     trendElem.id = "trend";
     trendElem.textContent = trend;
 
-    this.mainContainer.append(cityElem, trendElem);
+    const forecastDiv = document.createElement("div");
+    forecastDiv.id = "forecast-div";
+
+    for (const [key, value] of Object.entries(daysInfo)) {
+      const dayDiv = document.createElement("div");
+      dayDiv.id = "day-div";
+
+      // append date
+      const date = document.createElement("p");
+      date.textContent = `${key}`;
+      dayDiv.appendChild(date);
+
+      // append img
+      const img = document.createElement("img");
+      img.src = `./svg/${value["Icon"]}.svg`;
+      dayDiv.appendChild(img);
+
+      // append description
+      const description = document.createElement("p");
+      description.textContent = `${value["Description"]}`;
+      dayDiv.appendChild(description);
+
+      // append max temp
+      const maxTemp = document.createElement("p");
+      maxTemp.textContent = `Max: ${value["Max Temperature"]}°`;
+      dayDiv.appendChild(maxTemp);
+
+      // append min temp
+      const minTemp = document.createElement("p");
+      minTemp.textContent = `Min: ${value["Min Temperature"]}°`;
+      dayDiv.appendChild(minTemp);
+
+      forecastDiv.appendChild(dayDiv);
+    }
+
+    this.mainContainer.append(cityElem, trendElem, forecastDiv);
   }
 }
 

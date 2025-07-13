@@ -7,3 +7,16 @@
 .hidden {
   display: none;
 }
+
+#forecast-div {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+#day-div {
+  display: flex;
+  flex-direction: column;
+  background-color: gray;
+  border-radius: 24px;
+}
